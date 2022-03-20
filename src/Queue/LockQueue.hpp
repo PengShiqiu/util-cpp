@@ -1,3 +1,12 @@
+/**
+* @file LockQueue.h
+* @brief 简易队列
+* @details 使用list容器缓存数据，使用独占锁保证互斥
+* @author PengShiqiu
+* @version v1.0
+* @date 2022-03-20
+*/
+
 #pragma once
 #ifndef __QUEUE_LOCK_QUEUE_HPP_H__
 #define __QUEUE_LOCK_QUEUE_HPP_H__
