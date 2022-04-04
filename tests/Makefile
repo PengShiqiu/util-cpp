@@ -3,7 +3,8 @@ CC = g++
 LD = g++
 
 # 正则表达式表示目录下所有.c文件，相当于：SRCS = main.c a.c b.c
-SRCS = $(wildcard *.cpp)
+SRCS = $(wildcard ../src/ThreadPool/*.cpp  *.cpp)
+
 
 # OBJS表示SRCS中把列表中的.c全部替换为.o，相当于：OBJS = main.o a.o b.o
 OBJS = $(patsubst %cpp, %o, $(SRCS))
@@ -24,7 +25,7 @@ $(TARGET): $(OBJS)
 
 # 上一句目标文件依赖一大堆.o文件，这句表示所有.o都由相应名字的.c文件自动生成
 %.o:%.cpp
-	$(CC) -c $^
+	$(CC) -o $@ -c $^
 
 # make clean删除所有.o和目标文件
 clean:
