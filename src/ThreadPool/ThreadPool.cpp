@@ -39,7 +39,7 @@ void ThreadPool::Start(int max_thread_num)
                     });
 
                     // 线程池stop时退出线程
-                    if(!run_ && task_que_.empty())
+                    if(!run_)
                     {
                         return;
                     }
@@ -62,11 +62,13 @@ void ThreadPool::Start(int max_thread_num)
 
 void ThreadPool::Stop()
 {
+    std::unique_lock<std::mutex> lock(task_mutex_);
     if(!run_)
     {
         return;
     }
     run_ = false;
+    lock.unlock();
     task_cv_.notify_all();
     for(auto& th : threads_)
     {
