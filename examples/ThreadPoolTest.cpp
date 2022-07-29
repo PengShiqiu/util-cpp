@@ -19,7 +19,7 @@ int main() {
   });
 
   auto ret = threadpool.Push(Sum, 1, 2);
-  std::cout << "sum:" << ret.get() << std::endl;
+  std::cout << "sum:" << ret.Wait() << std::endl;
 
   std::this_thread::sleep_for(std::chrono::seconds(2));
   threadpool.Stop();

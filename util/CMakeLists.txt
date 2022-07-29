@@ -10,10 +10,9 @@ SET_TARGET_PROPERTIES(util PROPERTIES LINKER_LANGUAGE CXX)
 INSTALL(TARGETS util DESTINATION lib)
 set(HEADERS
     threadpool/ThreadPool.h
-    queue/RingQueue.hpp
-    queue/LockQueue.hpp
-    queue/CASQueue.hpp
 )
 
 INSTALL(FILES ${HEADERS} DESTINATION include/util)
 
+SUBDIRS(future)
+SUBDIRS(queue)

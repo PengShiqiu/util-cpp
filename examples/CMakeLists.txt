@@ -2,12 +2,14 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR})
 
 ADD_EXECUTABLE(QuequeTest QuequeTest.cpp)
 ADD_EXECUTABLE(ThreadPoolTest ThreadPoolTest.cpp)
+ADD_EXECUTABLE(FutureTest FutureTest.cpp)
 
 SET(EXECUTABLE_OUTPUT_PATH  ${PROJECT_SOURCE_DIR}/bin/examples)
 
 TARGET_LINK_LIBRARIES(QuequeTest util)
 TARGET_LINK_LIBRARIES(ThreadPoolTest util)
+TARGET_LINK_LIBRARIES(FutureTest util)
 
 ADD_DEPENDENCIES(QuequeTest util)
 ADD_DEPENDENCIES(ThreadPoolTest util)
-
+ADD_DEPENDENCIES(FutureTest util)

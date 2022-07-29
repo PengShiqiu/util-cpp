@@ -17,6 +17,7 @@
 #include <queue>
 #include <thread>
 #include <vector>
+#include "util/future/Future.h"
 
 /**
  * @brief 线程池
@@ -34,34 +35,16 @@ class ThreadPool final {
    *
    * @param f 执行仿函数模块
    * @param args 可变参数模板
-   * @return std::future<T> 执行函数返回数据
+   * @return ananas::Future<T> 执行函数返回Future数据，使用Future模型
    */
-  template <class F, class... Args>
-  auto Push(F &&f, Args &&...args) -> std::future<decltype(f(args...))> {
-    if (!run_) {
-      throw std::runtime_error("thread pool stoped.");
-    }
+    template <typename F, typename... Args,
+              typename = typename std::enable_if<!std::is_void<typename std::result_of<F (Args...)>::type>::value, void>::type,
+              typename Dummy = void>
+    auto Push(F&& f, Args&&... args) -> ananas::Future<typename std::result_of<F (Args...)>::type>;
 
-    //推导函数返回数据类型
-    using RetType = decltype(f(std::forward<Args>(args)...));
-
-    //创建packaged_task对象，使用bind将函数转换为task()
-    auto task = std::make_shared<std::packaged_task<RetType()>>(
-        std::bind(std::forward<F>(f), std::forward<Args>(args)...));
-
-    //获取函数返回值std::future<RetType>
-    auto ret = task->get_future();
-    {
-      std::lock_guard<std::mutex> auto_lock(task_mutex_);
-      // 执行函数加入队列
-      task_que_.emplace([task] { (*task)(); });
-    }
-
-    // 通知单个线程
-    task_cv_.notify_one();
-
-    return ret;
-  }
+    template <typename F, typename... Args,
+              typename = typename std::enable_if<std::is_void<typename std::result_of<F (Args...)>::type>::value, void>::type>
+    auto Push(F&& f, Args&&... args) -> ananas::Future<void>;
 
   /**
    * @brief 启动线程池
@@ -85,5 +68,61 @@ class ThreadPool final {
   std::mutex task_mutex_;            /**< 任务函数队列锁 */
   std::atomic<bool> run_;            /**< 线程池运行标志 */
 };
+
+
+// if F return something
+template <typename F, typename... Args, typename, typename >
+auto ThreadPool::Push(F&& f, Args&&... args) -> ananas::Future<typename std::result_of<F (Args...)>::type> {
+    using resultType = typename std::result_of<F (Args...)>::type;
+
+    std::unique_lock<std::mutex> guard(task_mutex_);
+    if (!run_)
+        throw std::runtime_error("thread pool stoped.");
+
+    ananas::Promise<resultType> promise;
+    auto future = promise.GetFuture();
+
+    auto func = std::bind(std::forward<F>(f), std::forward<Args>(args)...);
+    auto task = [t = std::move(func), pm = std::move(promise)]() mutable {
+        try {
+            pm.SetValue(ananas::Try<resultType>(t()));
+        } catch(...) {
+            pm.SetException(std::current_exception());
+        }
+    };
+
+    task_que_.emplace(std::move(task));
+    task_cv_.notify_one();
+
+    return future;
+}
+
+// F return void
+template <typename F, typename... Args, typename >
+auto ThreadPool::Push(F&& f, Args&&... args) -> ananas::Future<void> {
+    using resultType = typename std::result_of<F (Args...)>::type;
+    static_assert(std::is_void<resultType>::value, "must be void");
+
+    std::unique_lock<std::mutex> guard(task_mutex_);
+    if (!run_)
+        throw std::runtime_error("thread pool stoped.");
+
+    ananas::Promise<resultType> promise;
+    auto future = promise.GetFuture();
+
+    auto func = std::bind(std::forward<F>(f), std::forward<Args>(args)...);
+    auto task = [t = std::move(func), pm = std::move(promise)]() mutable {
+        try {
+            t();
+            pm.SetValue();
+        } catch(...) {
+            pm.SetException(std::current_exception());
+        }
+    };
+
+    task_que_.emplace(std::move(task));
+    task_cv_.notify_one();
+    return future;
+}
 
 #endif
