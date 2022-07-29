@@ -1,10 +1,10 @@
 #include <iostream>
 
-#include "../src/ThreadPool/ThreadPool.h"
+#include "util/threadpool/ThreadPool.h"
 
 int Sum(int a, int b) { return a + b; }
 
-void ThreadPoolTest() {
+int main() {
   ThreadPool threadpool;
   threadpool.Start(2);
 
@@ -23,4 +23,5 @@ void ThreadPoolTest() {
 
   std::this_thread::sleep_for(std::chrono::seconds(2));
   threadpool.Stop();
+  return 0;
 }

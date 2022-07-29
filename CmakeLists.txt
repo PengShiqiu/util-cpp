@@ -1,0 +1,31 @@
+CMAKE_MINIMUM_REQUIRED(VERSION 3.14)
+
+PROJECT(util-cpp)
+
+SET(CMAKE_CXX_STANDARD 14)
+
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    message("Detect linux platform")
+ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    message("Detect mac platform")
+ELSE()
+    message(FATAL_ERROR "Only support linux or mac")
+ENDIF()
+
+OPTION(DEBUG "Debug or release" OFF)
+
+IF(DEBUG)
+    SET(CMAKE_BUILD_TYPE "Debug")
+    message("${CMAKE_BUILD_TYPE}")
+ELSE()
+    SET(CMAKE_BUILD_TYPE "Release")
+    message("${CMAKE_BUILD_TYPE}")
+ENDIF()
+
+include(FetchContent)
+
+
+INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/../)
+
+SUBDIRS(util)
+SUBDIRS(examples)

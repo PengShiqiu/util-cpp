@@ -3,8 +3,8 @@
 #include <iostream>
 #include <thread>
 
-#include "../src/Queue/LockQueue.hpp"
-#include "../src/Queue/RingQueue.hpp"
+#include "util/queue/LockQueue.hpp"
+#include "util/queue/RingQueue.hpp"
 
 #define TEST_NUM 1000000
 clock_t start, end;
@@ -41,7 +41,7 @@ void TestRingQueue() {
             << std::endl;
 }
 
-void TestLockQueue() {
+int main() {
   start = clock();
   auto queue_ptr = std::make_shared<LockQueue<int>>();
   auto write_th = std::thread([queue_ptr] {
@@ -71,4 +71,6 @@ void TestLockQueue() {
 
   std::cout << "lock queue运行时间：" << (end - start) / 1000 << "ms"
             << std::endl;
+
+  return 0;
 }
