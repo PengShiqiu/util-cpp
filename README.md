@@ -1,8 +1,9 @@
 #   C++基础组件
 基础组件
-- 线程池 [src/ThreadPool]
-- 无锁环形队列 [src/Queue/RingQueue]
-- 定时器
+- 线程池 [util/threadpool] 
+- 无锁环形队列 [util/queue/RingQueue]
+- Promise/Future并发模型 [util/future]
+- 定时器 未实现
   - 红黑树:适用于单线程环境，锁的粒度较大。
   - 最小堆：插入效率高于红黑树
   - 跳表：适合多线程环境
