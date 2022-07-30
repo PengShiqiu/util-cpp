@@ -16,3 +16,4 @@ INSTALL(FILES ${HEADERS} DESTINATION include/util)
 
 SUBDIRS(future)
 SUBDIRS(queue)
+SUBDIRS(defer)
