@@ -1,7 +1,7 @@
 set(HEADERS
-    queue/RingQueue.hpp
-    queue/LockQueue.hpp
-    queue/CASQueue.hpp
+    RingQueue.h
+    LockQueue.h
+    CASQueue.h
    )
 
 INSTALL(FILES ${HEADERS} DESTINATION include/util/queue)

@@ -1,4 +1,4 @@
-//copyright ananas
+//copy from ananas
 #pragma once
 #include <functional>
 

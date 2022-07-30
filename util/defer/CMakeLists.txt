@@ -1,5 +1,5 @@
 set(HEADERS
-    Defer.hpp
+    Defer.h
    )
 
 INSTALL(FILES ${HEADERS} DESTINATION include/util/defer)

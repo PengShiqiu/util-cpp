@@ -3,8 +3,8 @@
 #include <iostream>
 #include <thread>
 
-#include "util/queue/LockQueue.hpp"
-#include "util/queue/RingQueue.hpp"
+#include "util/queue/LockQueue.h"
+#include "util/queue/RingQueue.h"
 
 #define TEST_NUM 1000000
 clock_t start, end;
