@@ -1,6 +1,7 @@
 #include "util/future/Future.h"
 #include "util/threadpool/ThreadPool.h"
 #include "util/timer/Timer.h"
+
 #define PRINT(t, arg...) printf("%s:%d " t, __FILE__, __LINE__, ##arg)
 
 class FutureSchedule : public ananas::Scheduler {
@@ -28,24 +29,51 @@ int main(void) {
   tp->Start(2);
 
   std::shared_ptr<FutureSchedule> sche = std::make_shared<FutureSchedule>(tp, timer);
-  {
-    auto future = tp->Push([] {
-      std::this_thread::sleep_for(std::chrono::seconds(2));
-      PRINT("executor 1.\n");
-    });
+  
+  std::shared_ptr<ananas::Promise<int>> promise(new ananas::Promise<int>());
+  std::shared_ptr<ananas::Promise<int>> promise_excep(new ananas::Promise<int>());
 
-    future.Then([] { PRINT("executor 2.\n"); })
-        .Then(sche.get(), [] { PRINT("executor 3.\n"); })
-        .Then([] { PRINT("executor 4.\n"); })
-        .Then([] { PRINT("executor 5.\n"); })
-        .OnTimeout(
-            std::chrono::seconds(1), [] { PRINT("OnTimeout.\n"); },
-            sche.get());
-  }
+  timer->ScheduleAfter(std::chrono::milliseconds(2000), [promise_excep, promise] {
+    if (!promise->IsReady()) {
+      PRINT("executor 1.\n");
+      promise->SetValue(1);
+    }
+    if (!promise_excep->IsReady()) {
+      try {
+        throw std::runtime_error("ThreadFunc exception");
+      } catch(...) {
+        promise_excep->SetException(std::current_exception());
+      }
+    }
+  });
+  promise->GetFuture().Then(sche.get(), [](ananas::Try<int>&& ret){
+    try {
+      int value = ret;
+      PRINT("executor ret:%d.\n", value);
+    } catch (std::exception& err) {
+      PRINT("Then got exception:%s\n",err. what());
+    }
+  })
+  .OnTimeout(std::chrono::milliseconds(1000), []{
+    PRINT("timeout\n");
+  }, sche.get());
+
+  promise_excep->GetFuture().Then(sche.get(),[](ananas::Try<int>&& ret){
+    try {
+      int value = ret;
+      PRINT("executor ret:%d.\n", value);
+    } catch (std::exception& err) {
+      PRINT("Then got exception:%s\n",err. what());
+    }
+  })
+  .OnTimeout(std::chrono::milliseconds(1000), []{
+    PRINT("timeout\n");
+  }, sche.get());
 
   while (true) {
     timer->Update();
   }
+
   return 0;
 }
 

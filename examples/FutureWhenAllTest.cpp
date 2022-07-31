@@ -1,6 +1,7 @@
 #include "util/future/Future.h"
 #include "util/threadpool/ThreadPool.h"
 #include "util/timer/Timer.h"
+
 #define PRINT(t, arg...) printf("%s:%d " t, __FILE__, __LINE__, ##arg)
 
 class FutureSchedule : public ananas::Scheduler {
@@ -27,24 +28,33 @@ int main(void) {
   std::shared_ptr<ThreadPool> tp = std::make_shared<ThreadPool>();
   tp->Start(2);
 
-  std::shared_ptr<FutureSchedule> sche = std::make_shared<FutureSchedule>(tp, timer);
-  {
-    auto future = tp->Push([] {
-      std::this_thread::sleep_for(std::chrono::seconds(2));
-      PRINT("executor 1.\n");
-    });
+  auto future1 = tp->Push([]{
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    return 1;
+  });  
+  auto future2 = tp->Push([]{
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+    return std::string("hello");
+  });  
+  ananas::WhenAll(future1, future2)
+  .Then([](const std::tuple<ananas::Try<int>, ananas::Try<std::string>>& results){
+    PRINT("result 0 : %d\n", std::get<0>(results).Value());
+    PRINT("result 1 : %s\n", std::get<1>(results).Value().c_str());
+  });
 
-    future.Then([] { PRINT("executor 2.\n"); })
-        .Then(sche.get(), [] { PRINT("executor 3.\n"); })
-        .Then([] { PRINT("executor 4.\n"); })
-        .Then([] { PRINT("executor 5.\n"); })
-        .OnTimeout(
-            std::chrono::seconds(1), [] { PRINT("OnTimeout.\n"); },
-            sche.get());
+  std::vector<ananas::Future<int>> futures;
+  for(int i = 0; i < 50; ++i){
+    auto&& ft = tp->Push([](int i){return i;}, i);
+    futures.emplace_back(std::move(ft));
   }
-
-  while (true) {
-    timer->Update();
+  ananas::WhenAll(std::begin(futures), std::end(futures))
+  .Then([](const std::vector<ananas::Try<int>>& results){
+    for (auto& t : results){
+      PRINT("ret : %d \n", t.Value());
+    }
+  });
+  while(1){
+    std::this_thread::sleep_for(std::chrono::seconds(1));
   }
   return 0;
 }
