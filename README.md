@@ -3,18 +3,20 @@
 - 线程池 [util/threadpool] 
 - 无锁环形队列 [util/queue/RingQueue]
 - Promise/Future并发模型 [util/future]
-- 定时器 未实现
+- 定时器 - 未实现
   - 红黑树:适用于单线程环境，锁的粒度较大。
   - 最小堆：插入效率高于红黑树
   - 跳表：适合多线程环境
   - 时间轮：时间及空间复杂度都是最优、
-- 内存池
-- 步请求池
-- 协程框架
-- 用户态协议栈
-- 死锁检测
-- 内存泄漏
-- 分布式锁
+- 内存池 - 未实现
+- 步请求池 - 未实现
+- 协程框架 - 未实现
+- 用户态协议栈 - 未实现
+- 死锁检测 - 未实现
+- 内存泄漏 - 未实现
+
+数据结构
+-  跳表 [util/skiplist]
                     
 ## 1.无锁队列-环形队列实现
 
@@ -39,25 +41,5 @@ src/ThreadPool/ThreadPool.cpp
 - 支持可变参数传入
 - 支持函数返回值
 
-#### 使用示例　
-        ThreadPool threadpool;
-        threadpool.Start(2);
-
-        threadpool.Push([]
-        {
-            std::cout << std::this_thread::get_id() << " hello word 1" << std::endl;
-        });
-        threadpool.Push([]
-        {
-            std::cout << std::this_thread::get_id() << " hello word 2" << std::endl;
-        });
-        threadpool.Push([]
-        {
-            std::cout << std::this_thread::get_id() << " hello word 3" << std::endl;
-        });
-
-        auto ret = threadpool.Push(Sum, 1, 2);
-        std::cout << "sum:" << ret.get() << std::endl;
-
-        std::this_thread::sleep_for(std::chrono::seconds(2));
-        threadpool.Stop();
+## 3. Promise/Future并发模型
+ref: https://github.com/PengShiqiu/ananas
